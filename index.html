@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VANWELL 工资飞轮</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="主导航">
+        <div class="brand">
+          <div class="brand-mark">V</div>
+          <div>
+            <p class="eyebrow">VANWELL</p>
+            <h1>工资飞轮</h1>
+          </div>
+        </div>
+
+        <nav class="nav-tabs" aria-label="页面切换">
+          <button class="nav-tab is-active" data-view="calculator" type="button">
+            <span class="nav-icon">¥</span>
+            <span>每日工资</span>
+          </button>
+          <button class="nav-tab" data-view="manager" type="button">
+            <span class="nav-icon">≡</span>
+            <span>管理参数</span>
+          </button>
+          <button class="nav-tab" data-view="history" type="button">
+            <span class="nav-icon">⌁</span>
+            <span>计算记录</span>
+          </button>
+          <button class="nav-tab" data-view="implementation" type="button">
+            <span class="nav-icon">✓</span>
+            <span>落地设置</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-note">
+          <strong>当前公式</strong>
+          <span>基础 + 质量 + 效率 + 数据 + 反馈 + 团队 - 扣款</span>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <section class="topbar">
+          <div>
+            <p class="eyebrow">内部试算工具</p>
+            <h2 id="viewTitle">每日工资计算</h2>
+          </div>
+          <div class="topbar-actions">
+            <button class="ghost-button" id="resetDemo" type="button" title="恢复默认演示参数">↺ 默认参数</button>
+            <button class="primary-button" id="saveRecord" type="button" title="保存当前工资记录">＋ 保存记录</button>
+          </div>
+        </section>
+
+        <section class="view is-active" id="calculatorView" aria-labelledby="viewTitle">
+          <div class="calc-layout">
+            <form class="tool-panel" id="wageForm">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Worker Day Sheet</p>
+                  <h3>当天生产数据</h3>
+                </div>
+                <span class="status-pill" id="formulaStatus">自动计算</span>
+              </div>
+
+              <div class="form-grid">
+                <label>
+                  <span>日期</span>
+                  <input id="workDate" name="workDate" type="date" />
+                </label>
+                <label>
+                  <span>工人姓名</span>
+                  <input id="workerName" name="workerName" type="text" placeholder="例如：张三" />
+                </label>
+                <label>
+                  <span>员工编号</span>
+                  <input id="workerId" name="workerId" type="text" placeholder="可选" />
+                </label>
+                <label>
+                  <span>工序</span>
+                  <select id="operationId" name="operationId"></select>
+                </label>
+                <label>
+                  <span>合格件数</span>
+                  <input id="quantity" name="quantity" type="number" min="0" step="1" value="30" />
+                </label>
+                <label>
+                  <span>面料难度</span>
+                  <select id="fabricId" name="fabricId"></select>
+                </label>
+                <label>
+                  <span>工人等级</span>
+                  <select id="levelId" name="levelId"></select>
+                </label>
+                <label>
+                  <span>质量分</span>
+                  <input id="qualityScore" name="qualityScore" type="number" min="0" max="100" step="1" value="98" />
+                </label>
+                <label>
+                  <span>实际用时（分钟）</span>
+                  <input id="actualMinutes" name="actualMinutes" type="number" min="1" step="1" value="150" />
+                </label>
+                <label>
+                  <span>问题反馈奖（元）</span>
+                  <input id="feedbackReward" name="feedbackReward" type="number" min="0" step="1" value="0" />
+                </label>
+                <label>
+                  <span>团队奖金（元）</span>
+                  <input id="teamBonus" name="teamBonus" type="number" min="0" step="1" value="0" />
+                </label>
+                <label>
+                  <span>扣款（元）</span>
+                  <input id="deductions" name="deductions" type="number" min="0" step="1" value="0" />
+                </label>
+              </div>
+
+              <fieldset class="allowance-fieldset">
+                <legend>数据 / AI 补贴</legend>
+                <label><input type="checkbox" name="allowance" value="scan" checked />扫码报工</label>
+                <label><input type="checkbox" name="allowance" value="tablet" checked />平板录入</label>
+                <label><input type="checkbox" name="allowance" value="ai" />AI 排产</label>
+                <label><input type="checkbox" name="allowance" value="dashboard" />查看看板</label>
+              </fieldset>
+            </form>
+
+            <aside class="result-panel" aria-live="polite">
+              <div class="result-total">
+                <span>今日合计</span>
+                <strong id="totalPay">¥0.00</strong>
+              </div>
+              <div class="result-meta">
+                <span id="qualityTier">质量等级：-</span>
+                <span id="efficiencyTier">效率达成：-</span>
+              </div>
+              <div class="breakdown" id="breakdown"></div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="view" id="managerView">
+          <div class="manager-grid">
+            <section class="tool-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Pricing</p>
+                  <h3>工序单价</h3>
+                </div>
+                <button class="icon-button" id="addOperation" type="button" title="新增工序">＋</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>工序名称</th>
+                      <th>标准分钟</th>
+                      <th>单价（元/件）</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="operationsTable"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="tool-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Coefficients</p>
+                  <h3>面料系数</h3>
+                </div>
+                <button class="icon-button" id="addFabric" type="button" title="新增面料系数">＋</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>面料</th>
+                      <th>系数</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="fabricsTable"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="tool-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Skill Level</p>
+                  <h3>等级溢价</h3>
+                </div>
+                <button class="icon-button" id="addLevel" type="button" title="新增等级">＋</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>等级</th>
+                      <th>倍率</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="levelsTable"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="tool-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Rules</p>
+                  <h3>质量 / 效率规则</h3>
+                </div>
+              </div>
+              <div class="rule-grid">
+                <label>
+                  <span>S 级最低分</span>
+                  <input id="qualityS" type="number" min="0" max="100" />
+                </label>
+                <label>
+                  <span>S 级奖金</span>
+                  <input id="qualitySPct" type="number" step="1" />
+                </label>
+                <label>
+                  <span>A 级最低分</span>
+                  <input id="qualityA" type="number" min="0" max="100" />
+                </label>
+                <label>
+                  <span>A 级奖金</span>
+                  <input id="qualityAPct" type="number" step="1" />
+                </label>
+                <label>
+                  <span>B 级最低分</span>
+                  <input id="qualityB" type="number" min="0" max="100" />
+                </label>
+                <label>
+                  <span>B 级奖金</span>
+                  <input id="qualityBPct" type="number" step="1" />
+                </label>
+                <label>
+                  <span>D 级低于分</span>
+                  <input id="qualityD" type="number" min="0" max="100" />
+                </label>
+                <label>
+                  <span>D 级扣减</span>
+                  <input id="qualityDPct" type="number" step="1" />
+                </label>
+                <label>
+                  <span>效率 100% 奖金</span>
+                  <input id="eff100" type="number" step="1" />
+                </label>
+                <label>
+                  <span>效率 110% 奖金</span>
+                  <input id="eff110" type="number" step="1" />
+                </label>
+                <label>
+                  <span>效率 125% 奖金</span>
+                  <input id="eff125" type="number" step="1" />
+                </label>
+                <label>
+                  <span>低质效率封顶</span>
+                  <input id="lowQualityEffCap" type="number" step="1" />
+                </label>
+              </div>
+            </section>
+
+            <section class="tool-panel span-wide">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Data</p>
+                  <h3>数据备份</h3>
+                </div>
+                <button class="ghost-button" id="exportConfig" type="button">导出 JSON</button>
+              </div>
+              <textarea id="configJson" rows="7" placeholder="导出的参数会显示在这里，也可以粘贴 JSON 后导入。"></textarea>
+              <div class="inline-actions">
+                <button class="primary-button" id="importConfig" type="button">导入参数</button>
+                <button class="ghost-button" id="clearHistory" type="button">清空记录</button>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="historyView">
+          <section class="tool-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Records</p>
+                <h3>已保存工资记录</h3>
+              </div>
+              <button class="ghost-button" id="exportCsv" type="button">导出 CSV</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>日期</th>
+                    <th>工人</th>
+                    <th>工序</th>
+                    <th>件数</th>
+                    <th>质量</th>
+                    <th>效率</th>
+                    <th>合计</th>
+                  </tr>
+                </thead>
+                <tbody id="historyTable"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <section class="view" id="implementationView">
+          <div class="implementation-layout">
+            <section class="tool-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Decision Board</p>
+                  <h3>HR 会议决策</h3>
+                </div>
+                <button class="primary-button" id="saveImplementation" type="button">保存设置</button>
+              </div>
+              <div class="decision-grid">
+                <label>
+                  <span>每日字段由谁填写</span>
+                  <textarea id="fieldOwner" rows="4"></textarea>
+                </label>
+                <label>
+                  <span>参数由谁提出 / 批准 / 录入</span>
+                  <textarea id="parameterOwner" rows="4"></textarea>
+                </label>
+                <label>
+                  <span>员工异议复核流程</span>
+                  <textarea id="reviewFlow" rows="4"></textarea>
+                </label>
+                <label>
+                  <span>试运行范围</span>
+                  <textarea id="pilotScope" rows="4"></textarea>
+                </label>
+              </div>
+            </section>
+
+            <aside class="result-panel">
+              <div class="panel-heading compact-heading">
+                <div>
+                  <p class="eyebrow">Pilot Plan</p>
+                  <h3>四周推进</h3>
+                </div>
+              </div>
+              <div class="timeline-list">
+                <div><strong>第一周</strong><span>压胶工序试算，原工资表并行核对。</span></div>
+                <div><strong>第二周</strong><span>确认工序单价、面料系数、等级倍率。</span></div>
+                <div><strong>第三周</strong><span>员工说明会，解释“数据 = 收入”。</span></div>
+                <div><strong>第四周</strong><span>导出记录复盘，决定是否正式试运行。</span></div>
+              </div>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="./app.js"></script>
+  </body>
+</html>
